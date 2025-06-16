@@ -1,6 +1,6 @@
 # FriendAI
 
-FriendAI is a Next.js-based AI companion web app that provides a modern UI/UX, authentication, and deployment best practices. It allows users to chat and call with an AI friend, ensuring a seamless and engaging experience.
+FriendAI is a Next.js-based AI companion web app that provides a modern UI/UX, authentication, and deployment best practices. It allows users to chat and call with an AI friend, ensuring a seamless and engaging experience.We’re working on bringing you high-quality voice calls with AI. Stay tuned for this exciting feature!
 
 ## Features
 
@@ -44,12 +44,9 @@ FriendAI is a Next.js-based AI companion web app that provides a modern UI/UX, a
 
 - **Home Page**: Displays the hero section with options to sign in or create an account.
 - **Chat Page**: Accessible to signed-in users, allowing them to send messages to the AI.
-- **Call Page**: Accessible to signed-in users, providing a coming soon message for voice calls.
+- **Call Page**: Accessible to signed-in users, providing a coming soon message for voice calls.We’re working on bringing you high-quality voice calls with AI. Stay tuned for this exciting feature!
 
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
-## License
-
-This project is licensed under the MIT License.
