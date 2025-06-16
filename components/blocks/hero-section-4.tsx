@@ -2,11 +2,8 @@
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { InfiniteSlider } from '@/components/ui/infinite-slider'
-import { ProgressiveBlur } from '@/components/ui/progressive-blur'
 import { cn } from '@/lib/utils'
 import { Menu, X, Phone, MessageSquare } from 'lucide-react'
-import Dither from '@/components/ui/Dither'
 import { Component as EtheralShadow } from '@/components/ui/etheral-shadow'
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 
