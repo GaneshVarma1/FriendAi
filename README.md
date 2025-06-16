@@ -50,3 +50,4 @@ FriendAI is a Next.js-based AI companion web app that provides a modern UI/UX, a
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
+# FriendAi-BE
