@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { Menu, X, Phone, MessageSquare } from 'lucide-react'
 import Dither from '@/components/ui/Dither'
 import { Component as EtheralShadow } from '@/components/ui/etheral-shadow'
-import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs'
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 
 export function HeroSection() {
     return (
@@ -44,8 +44,15 @@ export function HeroSection() {
                     <SignedOut>
                         <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
                             <SignInButton mode="modal">
-                                <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold text-lg hover:bg-primary/90 transition">Sign In / Create Account</button>
+                                <Button size="lg" className="gap-2">
+                                    Sign In
+                                </Button>
                             </SignInButton>
+                            <SignUpButton mode="modal">
+                                <Button variant="secondary" size="lg" className="gap-2">
+                                    Create Account
+                                </Button>
+                            </SignUpButton>
                         </div>
                     </SignedOut>
                     <SignedIn>
