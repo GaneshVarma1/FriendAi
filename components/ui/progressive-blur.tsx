@@ -26,6 +26,10 @@ export function ProgressiveBlur({
   const layers = Math.max(blurLayers, 2);
   const segmentSize = 1 / (blurLayers + 1);
 
+  // Filter out string refs
+  const { ref, ...restProps } = props;
+  const safeRef = typeof ref === 'function' || (ref && typeof ref === 'object') ? ref : undefined;
+
   return (
     <div className={cn('relative', className)}>
       {Array.from({ length: layers }).map((_, index) => {
@@ -53,7 +57,8 @@ export function ProgressiveBlur({
               WebkitMaskImage: gradient,
               backdropFilter: `blur(${index * blurIntensity}px)`,
             }}
-            {...props}
+            ref={safeRef}
+            {...restProps}
           />
         );
       })}
