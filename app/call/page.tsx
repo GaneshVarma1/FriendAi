@@ -1,24 +1,52 @@
 'use client'
 
+import { useState, useEffect } from 'react';
 import { ChatHeader } from "@/components/ui/chat-header";
 import { Phone } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import { useState } from "react";
 import { SignedIn, SignedOut, SignIn } from '@clerk/nextjs';
+import { SocketProvider, useSocket } from './SignalingContext';
+import VoiceCallAI from '@/components/ui/VoiceCallAI';
 
-export default function CallPage() {
+const CallPage = () => {
     const { user } = useUser();
-    const [email, setEmail] = useState(user?.emailAddresses?.[0]?.emailAddress || "");
-    const [subscribed, setSubscribed] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [callStatus, setCallStatus] = useState('idle'); // 'idle', 'connecting', 'in-call', 'ended'
+    const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+    const [aiResponse, setAiResponse] = useState('');
+    const socket = useSocket();
 
-    const handleSubscribe = (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setTimeout(() => {
-            setSubscribed(true);
-            setLoading(false);
-        }, 1200);
+    const speak = (text: string) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
+    };
+
+    const startCall = async () => {
+        try {
+            setCallStatus('connecting');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setAudioStream(stream);
+            setCallStatus('in-call');
+            // Simulate AI response for now
+            setTimeout(() => {
+                const response = `Hey ${user?.firstName || 'sweetie'}! I've been waiting for you. How can I make your day better?`;
+                setAiResponse(response);
+                speak(response);
+            }, 1000);
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            setCallStatus('ended');
+        }
+    };
+
+    const endCall = () => {
+        if (audioStream) {
+            audioStream.getTracks().forEach(track => track.stop());
+            setAudioStream(null);
+        }
+        setCallStatus('ended');
+        const goodbye = "I'll miss you! Take care and come back soon!";
+        setAiResponse(goodbye);
+        speak(goodbye);
     };
 
     return (
@@ -27,38 +55,7 @@ export default function CallPage() {
                 <div className="flex flex-col h-screen bg-background">
                     <ChatHeader />
                     <div className="flex-1 flex flex-col items-center justify-center p-4">
-                        <div className="text-center space-y-6">
-                            <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                                <Phone className="w-10 h-10 text-primary" />
-                            </div>
-                            <h1 className="text-2xl font-semibold">
-                                {user?.firstName ? `Hi ${user.firstName}, ` : ''}Voice Call Coming Soon
-                            </h1>
-                            <p className="text-muted-foreground max-w-md">
-                                We&apos;re working on bringing you high-quality voice calls with AI. Stay tuned for this exciting feature!
-                            </p>
-                            {!subscribed ? (
-                                <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 items-center justify-center mt-4">
-                                    <input
-                                        type="email"
-                                        required
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        placeholder="Enter your email to subscribe"
-                                        className="border rounded-lg px-4 py-2 focus:outline-none focus:ring focus:border-primary bg-background text-foreground"
-                                    />
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold hover:bg-primary/90 transition"
-                                    >
-                                        {loading ? 'Subscribing...' : 'Subscribe'}
-                                    </button>
-                                </form>
-                            ) : (
-                                <div className="text-green-600 font-medium mt-2">Thank you for subscribing!</div>
-                            )}
-                        </div>
+                        <VoiceCallAI />
                     </div>
                 </div>
             </SignedIn>
@@ -69,4 +66,12 @@ export default function CallPage() {
             </SignedOut>
         </>
     );
-}
+};
+
+const CallPageWithSocket = () => (
+  <SocketProvider>
+    <CallPage />
+  </SocketProvider>
+);
+
+export default CallPageWithSocket;

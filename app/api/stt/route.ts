@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 
-const HF_API_URL = "https://api-inference.huggingface.co/models/openai/whisper-base";
-const HF_API_KEY = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY;
+const HF_API_URL = "https://api-inference.huggingface.co/models/jonatasgrosman/whisper-small-en";
+const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
 
 export async function POST(req: Request) {
     try {
         if (!HF_API_KEY) {
-            console.error('NEXT_PUBLIC_HUGGINGFACE_API_KEY is not set');
+            console.error('HUGGINGFACE_API_KEY is not set');
             return NextResponse.json(
                 { error: 'API key not configured' },
                 { status: 500 }

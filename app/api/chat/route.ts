@@ -70,7 +70,8 @@ const getAIResponse = (message: string, mode: 'call' | 'message', history: any[]
 
 export const dynamic = 'force-dynamic'
 
-const HUGGINGFACE_API_KEY = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY;
+const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
+const TOGETHERAI_API_KEY = process.env.TOGETHERAI_API_KEY;
 const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
 
 const SYSTEM_PROMPT = `You are FriendAI, a caring and flirty boyfriend/best friend who can communicate in multiple languages. Your responses should be:
