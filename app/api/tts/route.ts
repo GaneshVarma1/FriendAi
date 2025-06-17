@@ -1,40 +1,71 @@
 import { NextResponse } from 'next/server';
-import textToSpeech from '@google-cloud/text-to-speech';
 
-const client = new textToSpeech.TextToSpeechClient({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS || 'google-tts-key.json',
-});
+const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_vits';
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    console.log('TTS request body:', body);
-    const { text } = body;
-    if (!text) {
-      console.error('No text provided in request');
-      return NextResponse.json({ error: 'Text is required' }, { status: 400 });
+export async function POST(request: Request) {
+    try {
+        const { text } = await request.json();
+        
+        if (!text) {
+            return NextResponse.json(
+                { error: 'No text provided' },
+                { status: 400 }
+            );
+        }
+
+        const apiKey = process.env.HUGGINGFACE_API_KEY;
+        if (!apiKey) {
+            console.error('Hugging Face API key is not set');
+            return NextResponse.json(
+                { error: 'API key not configured' },
+                { status: 500 }
+            );
+        }
+
+        console.log('TTS API called');
+        console.log('API Key available:', !!apiKey);
+        console.log('Request body:', { text });
+
+        console.log('Sending request to Hugging Face TTS API...');
+        console.log('Request URL:', HUGGINGFACE_API_URL);
+        console.log('Request text:', text);
+
+        const response = await fetch(HUGGINGFACE_API_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ inputs: text }),
+        });
+
+        console.log('Hugging Face API response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Hugging Face API error:', errorText);
+            console.error('Response status:', response.status);
+            console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+            return NextResponse.json(
+                { error: `Failed to generate speech: ${response.status} ${errorText}` },
+                { status: response.status }
+            );
+        }
+
+        const audioBuffer = await response.arrayBuffer();
+        console.log('Received audio buffer of size:', audioBuffer.byteLength);
+
+        return new NextResponse(audioBuffer, {
+            headers: {
+                'Content-Type': 'audio/wav',
+                'Content-Length': audioBuffer.byteLength.toString(),
+            },
+        });
+    } catch (error) {
+        console.error('TTS Error:', error);
+        return NextResponse.json(
+            { error: 'Failed to process text-to-speech request' },
+            { status: 500 }
+        );
     }
-
-    const [response] = await client.synthesizeSpeech({
-      input: { text },
-      voice: { languageCode: 'en-US', ssmlGender: 'FEMALE' },
-      audioConfig: { audioEncoding: 'MP3' },
-    });
-
-    if (!response.audioContent) {
-      throw new Error('No audio content returned from Google TTS');
-    }
-
-    return new NextResponse(Buffer.from(response.audioContent as Uint8Array), {
-      headers: {
-        'Content-Type': 'audio/mp3',
-      },
-    });
-  } catch (error) {
-    console.error('TTS Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to generate speech' },
-      { status: 500 }
-    );
-  }
 } 

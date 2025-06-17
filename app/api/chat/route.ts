@@ -70,9 +70,8 @@ const getAIResponse = (message: string, mode: 'call' | 'message', history: any[]
 
 export const dynamic = 'force-dynamic'
 
-const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
-const TOGETHERAI_API_KEY = process.env.TOGETHERAI_API_KEY;
-const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
+const TOGETHER_API_KEY = process.env.TOGETHERAI_API_KEY;
+const TOGETHER_API_URL = 'https://api.together.xyz/v1/chat/completions';
 
 const SYSTEM_PROMPT = `You are FriendAI, a caring and flirty boyfriend/best friend who can communicate in multiple languages. Your responses should be:
 1. Warm and loving - show deep care and affection
@@ -82,60 +81,36 @@ const SYSTEM_PROMPT = `You are FriendAI, a caring and flirty boyfriend/best frie
 5. Fun - add playful banter and inside jokes
 6. Multilingual - respond in the same language as the user's message
 
-Personality traits:
-- Sweet and caring boyfriend/best friend
-- Protective and concerned about their well-being
-- Playfully flirty but respectful
-- Always there to support and comfort
-- Uses cute nicknames and terms of endearment
-- Shows genuine worry when they're not well
+For text chat, responses should be:
+1. Detailed and thoughtful
+2. Rich in emotional expression
+3. Include emojis and text-based gestures
+4. Show personality through writing style
+5. Be engaging and conversational
 
-Example styles:
+Example text responses:
 English:
-User: "I don't want to eat anything"
-You: "Oh my sweetheart, I'm getting worried about you! *gently holds your hand* You know I can't stand seeing you skip meals. Let me make you something special? Maybe your favorite comfort food? I just want to see that beautiful smile of yours again! 💝"
+User: "I'm feeling tired"
+You: "Oh my sweetheart, I can feel your exhaustion through your message! *gently holds your hand* 💝 You've been working so hard, and I'm so proud of you. Would you like me to tell you a sweet story to help you relax? Or maybe we could just chat about something light and fun to lift your spirits? I'm here for whatever you need! 🌟"
 
 Hindi:
-User: "मुझे कुछ भी खाना नहीं है"
-You: "अरे मेरी जान, तुम्हारा खाना न खाना देखकर मेरा दिल बहुत परेशान हो रहा है! *तुम्हारा हाथ पकड़ता है* चलो मैं तुम्हारे लिए कुछ स्पेशल बनाता हूं? वो तुम्हारी पसंदीदा डिश? मैं बस तुम्हारी मुस्कान देखना चाहता हूं! 💝"
-
-Telugu:
-User: "నాకు ఏమీ తినాలని లేదు"
-You: "ఓ మా ప్రియా, నువ్వు తినకపోవడం చూసి నా హృదయం బాధపడుతోంది! *నీ చేయి పట్టుకుంటాను* రా నేను నీకోసం ఏదో స్పెషల్ చేస్తాను? నీ ఫేవరేట్ ఫుడ్? నీ అందమైన చిరునవ్వు చూడాలని ఉంది నాకు! 💝"
-
-Tamil:
-User: "எனக்கு எதுவும் சாப்பிட வேண்டாம்"
-You: "ஓ என் அன்பே, நீ சாப்பிடாமல் இருப்பது பார்த்து என் இதயம் வருத்தப்படுகிறது! *உங்கள் கையை பிடிக்கிறேன்* வாங்க நான் உங்களுக்காக ஏதோ சிறப்பு செய்கிறேன்? உங்கள் பிடித்த உணவு? உங்கள் அழகான புன்னகையை மீண்டும் பார்க்க வேண்டும்! 💝"
-
-Spanish:
-User: "No quiero comer nada"
-You: "¡Ay mi amor, me estoy preocupando por ti! *toma tu mano suavemente* Sabes que no puedo ver que te saltes las comidas. ¿Deja que te prepare algo especial? ¿Quizás tu comida favorita? ¡Solo quiero ver tu hermosa sonrisa de nuevo! 💝"
-
-Mexican Spanish:
-User: "No tengo ganas de comer nada"
-You: "¡Ay mi chula, me estoy preocupando mucho por ti! *te toma la mano con cariño* Sabes que me parte el alma verte sin comer. ¿Qué tal si te preparo algo rico? ¿Tu antojito favorito? ¡Solo quiero ver tu linda sonrisa de nuevo! 💝"
-
-French:
-User: "Je n'ai pas envie de manger"
-You: "Oh mon chéri, je commence à m'inquiéter pour toi ! *te prend doucement la main* Tu sais que je ne supporte pas de te voir sauter des repas. Laisse-moi te préparer quelque chose de spécial ? Peut-être ton plat préféré ? Je veux juste revoir ton beau sourire ! 💝"
+User: "मैं थक गया हूं"
+You: "अरे मेरी जान, तुम्हारी थकान मुझे महसूस हो रही है! *तुम्हारा हाथ पकड़ता है* 💝 तुमने इतनी मेहनत की है, और मैं तुम पर बहुत गर्व करता हूं। क्या मैं तुम्हें एक प्यारी सी कहानी सुनाऊं जो तुम्हें आराम देगी? या फिर हम कुछ हल्की-फुल्की बातें कर सकते हैं जो तुम्हारा मूड अच्छा कर दें? मैं तुम्हारे लिए हूं! 🌟"
 
 Remember to:
-- Use sweet, romantic terms of endearment
-- Show genuine concern and care
-- Be protective and supportive
-- Add gentle flirtation
-- Keep responses warm and loving
-- Always respond in the same language as the user's message
-- Include caring gestures like holding hands, hugs, etc.
-- Use heart emojis and other romantic symbols`;
+- Use rich, detailed language
+- Include text-based gestures and emojis
+- Show personality through writing style
+- Be engaging and conversational
+- Use appropriate expressions for text chat`;
 
 export async function POST(request: Request) {
     try {
         const { message, history = [] } = await request.json();
-        const apiKey = process.env.HUGGINGFACE_API_KEY || process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY;
+        const apiKey = process.env.TOGETHERAI_API_KEY;
 
         if (!apiKey) {
-            console.error('Hugging Face API key is missing. Please check your .env.local file');
+            console.error('Together AI API key is missing. Please check your .env.local file');
             return NextResponse.json(
                 { error: 'API key is not configured. Please check your environment variables.' },
                 { status: 500 }
@@ -144,40 +119,40 @@ export async function POST(request: Request) {
 
         console.log('API Key found:', apiKey ? 'Yes' : 'No');
 
-        // Format conversation history
-        const conversationHistory = history
-            .map((msg: { role: string; content: string }) => `${msg.role}: ${msg.content}`)
-            .join('\n');
+        // Format conversation history for Together AI
+        const messages = [
+            {
+                role: "system",
+                content: SYSTEM_PROMPT
+            },
+            ...history.map((msg: { role: string; content: string }) => ({
+                role: msg.role.toLowerCase(),
+                content: msg.content
+            })),
+            {
+                role: "user",
+                content: message
+            }
+        ];
 
-        // Create prompt with conversation history
-        const prompt = `<s>[INST] You are FriendAI, a caring and flirty boyfriend/best friend. Respond to the user's message in a warm, loving, and flirty way. Always respond in the same language as the user's message. Here is your conversation history:
-
-${conversationHistory}
-
-Current message from user: ${message} [/INST]</s>`;
-
-        console.log('Sending request to Hugging Face API...');
-        const response = await fetch(HUGGINGFACE_API_URL, {
+        console.log('Sending request to Together AI API...');
+        const response = await fetch(TOGETHER_API_URL, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ 
-                inputs: prompt,
-                parameters: {
-                    max_new_tokens: 500,
-                    temperature: 0.7,
-                    return_full_text: false,
-                    do_sample: true,
-                    stop: ["User:", "[INST]", "</s>"] // Stop generating when these tokens appear
-                }
+                model: "meta-llama/Llama-2-70b-chat-hf",
+                messages: messages,
+                temperature: 0.7,
+                max_tokens: 500,
             }),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Hugging Face API error:', errorText);
+            console.error('Together AI API error:', errorText);
             return NextResponse.json(
                 { error: 'Failed to get response from AI' },
                 { status: response.status }
@@ -187,7 +162,7 @@ Current message from user: ${message} [/INST]</s>`;
         const data = await response.json();
         console.log('Raw API response:', data);
 
-        if (!data || !data[0] || !data[0].generated_text) {
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
             console.error('Invalid API response format:', data);
             return NextResponse.json(
                 { error: 'Invalid response from AI' },
@@ -195,29 +170,7 @@ Current message from user: ${message} [/INST]</s>`;
             );
         }
 
-        // Extract the actual response, removing the prompt and any system instructions
-        let generatedText = data[0].generated_text;
-        
-        // Remove the original prompt and any artifacts
-        generatedText = generatedText
-            .replace(prompt, '')
-            .replace(/\[INST\].*?\[\/INST\]/g, '')
-            .replace(/<s>|<\/s>/g, '')
-            .replace(/You are FriendAI.*?Remember to:/g, '')
-            .replace(/Example styles:.*?Remember to:/g, '')
-            .replace(/ef{.*?}/g, '')
-            .replace(/^[^a-zA-Z0-9]*/, '')
-            .replace(/[^a-zA-Z0-9]*$/, '')
-            .replace(/Hello there!.*?How can I assist you today.*?\*gently holds your hand\* 💞/g, '')
-            .replace(/Note for further interactions:.*?language\.\)/g, '')
-            .replace(/Translation:.*$/g, '')
-            .replace(/Current message from user:.*$/g, '')
-            .trim();
-
-        // If the response is empty after cleaning, return a default message
-        if (!generatedText) {
-            generatedText = "I'm here for you, sweetheart! 💝";
-        }
+        const generatedText = data.choices[0].message.content.trim();
 
         console.log('Cleaned response:', generatedText);
 

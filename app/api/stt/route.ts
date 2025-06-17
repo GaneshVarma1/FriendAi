@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const HF_API_URL = "https://api-inference.huggingface.co/models/jonatasgrosman/whisper-small-en";
+const HF_API_URL = "https://api-inference.huggingface.co/models/openai/whisper-large-v3";
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
 
 export async function POST(req: Request) {
