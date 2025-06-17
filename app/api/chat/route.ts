@@ -70,8 +70,8 @@ const getAIResponse = (message: string, mode: 'call' | 'message', history: any[]
 
 export const dynamic = 'force-dynamic'
 
-const HUGGINGFACE_API_KEY = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY;
-const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
+const TOGETHER_API_KEY = process.env.NEXT_PUBLIC_TOGETHER_API_KEY;
+const TOGETHER_API_URL = 'https://api.together.xyz/v1/chat/completions';
 
 const SYSTEM_PROMPT = `You are FriendAI, a caring and flirty boyfriend/best friend who can communicate in multiple languages. Your responses should be:
 1. Warm and loving - show deep care and affection
@@ -131,10 +131,10 @@ Remember to:
 export async function POST(request: Request) {
     try {
         const { message, history = [] } = await request.json();
-        const apiKey = process.env.HUGGINGFACE_API_KEY || process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY;
+        const apiKey = process.env.NEXT_PUBLIC_TOGETHER_API_KEY;
 
         if (!apiKey) {
-            console.error('Hugging Face API key is missing. Please check your .env.local file');
+            console.error('Together AI API key is missing. Please check your .env.local file');
             return NextResponse.json(
                 { error: 'API key is not configured. Please check your environment variables.' },
                 { status: 500 }
@@ -143,40 +143,40 @@ export async function POST(request: Request) {
 
         console.log('API Key found:', apiKey ? 'Yes' : 'No');
 
-        // Format conversation history
-        const conversationHistory = history
-            .map((msg: { role: string; content: string }) => `${msg.role}: ${msg.content}`)
-            .join('\n');
+        // Format conversation history for Together AI
+        const messages = [
+            {
+                role: "system",
+                content: SYSTEM_PROMPT
+            },
+            ...history.map((msg: { role: string; content: string }) => ({
+                role: msg.role.toLowerCase(),
+                content: msg.content
+            })),
+            {
+                role: "user",
+                content: message
+            }
+        ];
 
-        // Create prompt with conversation history
-        const prompt = `<s>[INST] You are FriendAI, a caring and flirty boyfriend/best friend. Respond to the user's message in a warm, loving, and flirty way. Always respond in the same language as the user's message. Here is your conversation history:
-
-${conversationHistory}
-
-Current message from user: ${message} [/INST]</s>`;
-
-        console.log('Sending request to Hugging Face API...');
-        const response = await fetch(HUGGINGFACE_API_URL, {
+        console.log('Sending request to Together AI API...');
+        const response = await fetch(TOGETHER_API_URL, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ 
-                inputs: prompt,
-                parameters: {
-                    max_new_tokens: 500,
-                    temperature: 0.7,
-                    return_full_text: false,
-                    do_sample: true,
-                    stop: ["User:", "[INST]", "</s>"] // Stop generating when these tokens appear
-                }
+                model: "meta-llama/Llama-2-70b-chat-hf",
+                messages: messages,
+                temperature: 0.7,
+                max_tokens: 500,
             }),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Hugging Face API error:', errorText);
+            console.error('Together AI API error:', errorText);
             return NextResponse.json(
                 { error: 'Failed to get response from AI' },
                 { status: response.status }
@@ -186,7 +186,7 @@ Current message from user: ${message} [/INST]</s>`;
         const data = await response.json();
         console.log('Raw API response:', data);
 
-        if (!data || !data[0] || !data[0].generated_text) {
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
             console.error('Invalid API response format:', data);
             return NextResponse.json(
                 { error: 'Invalid response from AI' },
@@ -194,29 +194,7 @@ Current message from user: ${message} [/INST]</s>`;
             );
         }
 
-        // Extract the actual response, removing the prompt and any system instructions
-        let generatedText = data[0].generated_text;
-        
-        // Remove the original prompt and any artifacts
-        generatedText = generatedText
-            .replace(prompt, '')
-            .replace(/\[INST\].*?\[\/INST\]/g, '')
-            .replace(/<s>|<\/s>/g, '')
-            .replace(/You are FriendAI.*?Remember to:/g, '')
-            .replace(/Example styles:.*?Remember to:/g, '')
-            .replace(/ef{.*?}/g, '')
-            .replace(/^[^a-zA-Z0-9]*/, '')
-            .replace(/[^a-zA-Z0-9]*$/, '')
-            .replace(/Hello there!.*?How can I assist you today.*?\*gently holds your hand\* 💞/g, '')
-            .replace(/Note for further interactions:.*?language\.\)/g, '')
-            .replace(/Translation:.*$/g, '')
-            .replace(/Current message from user:.*$/g, '')
-            .trim();
-
-        // If the response is empty after cleaning, return a default message
-        if (!generatedText) {
-            generatedText = "I'm here for you, sweetheart! 💝";
-        }
+        const generatedText = data.choices[0].message.content.trim();
 
         console.log('Cleaned response:', generatedText);
 
