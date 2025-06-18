@@ -70,8 +70,8 @@ const getAIResponse = (message: string, mode: 'call' | 'message', history: any[]
 
 export const dynamic = 'force-dynamic'
 
-const TOGETHER_API_KEY = process.env.NEXT_PUBLIC_TOGETHER_API_KEY;
-const TOGETHER_API_URL = 'https://api.together.xyz/v1/chat/completions';
+const TOGETHER_API_KEY = process.env.TOGETHERAI_API_KEY;
+const TOGETHER_API_URL = process.env.NEXT_PUBLIC_TOGETHER_ENDPOINT_URL || 'https://api.together.xyz/v1/chat/completions';
 
 const SYSTEM_PROMPT = `You are FriendAI, a caring and flirty boyfriend/best friend who can communicate in multiple languages. Your responses should be:
 1. Warm and loving - show deep care and affection
@@ -100,7 +100,7 @@ You: "अरे मेरी जान, तुम्हारा खाना �
 
 Telugu:
 User: "నాకు ఏమీ తినాలని లేదు"
-You: "ఓ మా ప్రియా, నువ్వు తినకపోవడం చూసి నా హృదయం బాధపడుతోంది! *నీ చేయి పట్టుకుంటాను* రా నేను నీకోసం ఏదో స్పెషల్ చేస్తాను? నీ ఫేవరేట్ ఫుడ్? నీ అందమైన చిరునవ్వు చూడాలని ఉంది నాకు! 💝"
+You: "ఓ మా ప్రియా, నువ్వు తినకపోవడం చూసి నా హృదయం బాధపడుతోంది! *నీ చేయి పట్టుకుంటాను* రా నేను నీకోసం ఏదో స్పెషల్ చేస్తాను? నీ ఫేవరేట్ ఫుడ్? నీ అందమైన చిరునవ్వు చూడాలని ఉంది నాకు! ��"
 
 Tamil:
 User: "எனக்கு எதுவும் சாப்பிட வேண்டாம்"
@@ -131,7 +131,7 @@ Remember to:
 export async function POST(request: Request) {
     try {
         const { message, history = [] } = await request.json();
-        const apiKey = process.env.NEXT_PUBLIC_TOGETHER_API_KEY;
+        const apiKey = process.env.TOGETHERAI_API_KEY;
 
         if (!apiKey) {
             console.error('Together AI API key is missing. Please check your .env.local file');
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ 
-                model: "meta-llama/Llama-2-70b-chat-hf",
+                model: "deepseek-ai/DeepSeek-V3",
                 messages: messages,
                 temperature: 0.7,
                 max_tokens: 500,
@@ -194,7 +194,14 @@ export async function POST(request: Request) {
             );
         }
 
-        const generatedText = data.choices[0].message.content.trim();
+        let generatedText = data.choices[0].message.content.trim();
+
+        // Remove any line that starts with [Note: ...] or [Disclaimer: ...]
+        generatedText = generatedText
+            .split('\n')
+            .filter((line: string) => !/^\s*\[(Note|Disclaimer):[^\]]*\]/i.test(line))
+            .join('\n')
+            .trim();
 
         console.log('Cleaned response:', generatedText);
 
